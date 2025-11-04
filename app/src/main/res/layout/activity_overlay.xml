@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F9FA"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Full screen wave animation -->
+    <View
+        android:id="@+id/waveView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_alignParentBottom="true"
+        android:background="#87CEEB"
+        android:alpha="0.5" />
+
+    <!-- Content overlay on top of wave -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <!-- Breathing circle visual -->
+        <ImageView
+            android:id="@+id/breathingCircleImage"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:src="@drawable/breathing_circle_layered"
+            android:contentDescription="Breathing circle"
+            android:layout_marginBottom="24dp"
+            android:alpha="0.6" />
+
+        <ImageView
+            android:id="@+id/appIcon"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:contentDescription="App Icon"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/appName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:textColor="#333333"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Take a deep breath..."
+            android:textSize="18sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Is this really necessary right now?"
+            android:textSize="16sp"
+            android:textColor="#888888"
+            android:textAlignment="center"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
+
