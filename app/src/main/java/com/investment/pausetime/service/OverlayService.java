@@ -20,8 +20,11 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.investment.pausetime.R;
+
+import java.util.Random;
 
 public class OverlayService extends Service {
 
@@ -312,6 +315,13 @@ public class OverlayService extends Service {
             return;
         }
         
+        // Check if animation was interrupted (user closed app during animation)
+        boolean wasAnimationRunning = false;
+        if (waveAnimator != null && waveAnimator.isRunning()) {
+            wasAnimationRunning = true;
+            Log.d(TAG, "Animation was interrupted - user closed app during animation");
+        }
+        
         if (countDownTimer != null) {
             countDownTimer.cancel();
             countDownTimer = null;
@@ -334,6 +344,11 @@ public class OverlayService extends Service {
             Log.d(TAG, "Breathing animator cancelled");
         }
         
+        // Show encouragement message BEFORE removing overlay (so it's visible)
+        if (wasAnimationRunning) {
+            showEncouragementMessage();
+        }
+        
         if (overlayView != null && windowManager != null) {
             try {
                 windowManager.removeView(overlayView);
@@ -348,7 +363,133 @@ public class OverlayService extends Service {
         currentPackageName = null;
         
         Log.d(TAG, "Overlay dismissed, stopping service");
-        stopSelf();
+        // Delay stopping service to ensure toast has time to show
+        Handler handler = new Handler(getMainLooper());
+        handler.postDelayed(() -> stopSelf(), wasAnimationRunning ? 3500 : 100);
+    }
+    
+    private void showEncouragementMessage() {
+        try {
+            String[] messages = getResources().getStringArray(R.array.encouragement_messages);
+            if (messages.length > 0) {
+                Random random = new Random();
+                String message = messages[random.nextInt(messages.length)];
+                
+                // Show encouragement message as overlay view (more reliable than Toast)
+                Handler mainHandler = new Handler(getMainLooper());
+                mainHandler.post(() -> {
+                    try {
+                        showEncouragementOverlay(message);
+                        Log.d(TAG, "Showed encouragement message: " + message);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error showing encouragement overlay", e);
+                        // Fallback to Toast if overlay fails
+                        try {
+                            Toast.makeText(OverlayService.this, message, Toast.LENGTH_LONG).show();
+                        } catch (Exception e2) {
+                            Log.e(TAG, "Error showing toast fallback", e2);
+                        }
+                    }
+                });
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error showing encouragement message", e);
+        }
+    }
+    
+    private void showEncouragementOverlay(String message) {
+        if (windowManager == null) {
+            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        }
+        
+        // Create a simple text view for the encouragement message
+        TextView encouragementView = new TextView(this);
+        encouragementView.setText(message);
+        encouragementView.setTextSize(18);
+        encouragementView.setTextColor(0xFFFFFFFF); // White text
+        encouragementView.setPadding(48, 36, 48, 36);
+        encouragementView.setGravity(Gravity.CENTER);
+        encouragementView.setMaxWidth((int) (getResources().getDisplayMetrics().widthPixels * 0.85f));
+        
+        // Create a nice background with rounded corners
+        android.graphics.drawable.GradientDrawable background = new android.graphics.drawable.GradientDrawable();
+        background.setColor(0xE6000000); // Semi-transparent black
+        background.setCornerRadius(20f); // Rounded corners
+        encouragementView.setBackground(background);
+        encouragementView.setElevation(8f);
+        
+        // Set layout parameters for overlay
+        WindowManager.LayoutParams params;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+                            WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                    PixelFormat.TRANSLUCENT
+            );
+        } else {
+            params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+                            WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                    PixelFormat.TRANSLUCENT
+            );
+        }
+        params.gravity = Gravity.CENTER;
+        
+        // Add view to window
+        try {
+            windowManager.addView(encouragementView, params);
+            
+            // Auto-dismiss after 3 seconds with fade out animation
+            Handler handler = new Handler(getMainLooper());
+            handler.postDelayed(() -> {
+                try {
+                    if (windowManager != null && encouragementView != null) {
+                        // Fade out animation
+                        ValueAnimator fadeOut = ValueAnimator.ofFloat(1.0f, 0.0f);
+                        fadeOut.setDuration(300);
+                        fadeOut.addUpdateListener(animation -> {
+                            float alpha = (float) animation.getAnimatedValue();
+                            encouragementView.setAlpha(alpha);
+                        });
+                        fadeOut.addListener(new android.animation.Animator.AnimatorListener() {
+                            @Override
+                            public void onAnimationStart(android.animation.Animator animation) {}
+                            
+                            @Override
+                            public void onAnimationEnd(android.animation.Animator animation) {
+                                try {
+                                    if (windowManager != null && encouragementView != null) {
+                                        windowManager.removeView(encouragementView);
+                                    }
+                                } catch (Exception e) {
+                                    Log.e(TAG, "Error removing encouragement overlay", e);
+                                }
+                            }
+                            
+                            @Override
+                            public void onAnimationCancel(android.animation.Animator animation) {}
+                            
+                            @Override
+                            public void onAnimationRepeat(android.animation.Animator animation) {}
+                        });
+                        fadeOut.start();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error removing encouragement overlay", e);
+                }
+            }, 3000);
+        } catch (Exception e) {
+            Log.e(TAG, "Error adding encouragement overlay", e);
+            throw e;
+        }
     }
 
     @Override

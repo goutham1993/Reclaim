@@ -4,4 +4,16 @@
     
     <!-- Reclaim specific strings -->
     <string name="accessibility_service_description">Reclaim uses this service to detect when you open monitored apps and show a delay screen to promote mindful usage.</string>
+    
+    <!-- Encouragement messages -->
+    <string-array name="encouragement_messages">
+        <item>Great choice! You\'re being mindful about your time. 🌟</item>
+        <item>Well done! Taking breaks helps you stay focused.</item>
+        <item>Excellent decision! You\'re reclaiming your time. 💪</item>
+        <item>Proud of you! Every mindful moment counts.</item>
+        <item>Wonderful! You\'re building better habits. ✨</item>
+        <item>Amazing! You chose awareness over distraction.</item>
+        <item>Bravo! You\'re taking control of your digital wellbeing.</item>
+        <item>Fantastic! Small pauses lead to big changes.</item>
+    </string-array>
 </resources>
