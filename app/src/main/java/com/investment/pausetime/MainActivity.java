@@ -241,4 +241,16 @@ public class MainActivity extends AppCompatActivity implements MonitoredAppAdapt
         repository.removeMonitoredApp(app.getPackageName());
         loadMonitoredApps();
     }
+
+    @Override
+    public void onTemporaryReductionModeToggled(MonitoredApp app, boolean enabled) {
+        repository.setTemporaryReductionMode(app.getPackageName(), enabled);
+        loadMonitoredApps();
+    }
+
+    @Override
+    public void onTemporaryReductionApplied(MonitoredApp app, int reducedSeconds, long durationMillis) {
+        repository.applyTemporaryReduction(app.getPackageName(), reducedSeconds, durationMillis);
+        loadMonitoredApps();
+    }
 }

@@ -145,7 +145,7 @@ public class AppMonitoringService extends AccessibilityService {
                                     Intent intent = new Intent(AppMonitoringService.this, OverlayService.class);
                                     intent.putExtra("packageName", finalPackageName);
                                     intent.putExtra("appName", monitoredApp.getAppName());
-                                    intent.putExtra("delaySeconds", monitoredApp.getDelaySeconds());
+                                    intent.putExtra("delaySeconds", monitoredApp.getEffectiveDelaySeconds());
                                     startService(intent);
                                     
                                     // Schedule cleanup after delay completes
@@ -155,7 +155,7 @@ public class AppMonitoringService extends AccessibilityService {
                                         if (finalPackageName.equals(lastMonitoredPackage)) {
                                             lastMonitoredPackage = "";
                                         }
-                                    }, (monitoredApp.getDelaySeconds() + 2) * 1000L);
+                                    }, (monitoredApp.getEffectiveDelaySeconds() + 2) * 1000L);
                                     
                                     // Remove from cooldown after cooldown period
                                     handler.postDelayed(() -> {

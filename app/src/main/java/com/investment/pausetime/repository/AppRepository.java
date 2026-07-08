@@ -61,6 +61,35 @@ public class AppRepository {
         saveMonitoredApps(apps);
     }
 
+    public void setTemporaryReductionMode(String packageName, boolean enabled) {
+        List<MonitoredApp> apps = getMonitoredApps();
+        for (MonitoredApp app : apps) {
+            if (app.getPackageName().equals(packageName)) {
+                app.setTempReductionModeEnabled(enabled);
+                if (!enabled) {
+                    // Cancel any active reduction so the delay reverts immediately.
+                    app.setTempReducedDelaySeconds(0);
+                    app.setTempReductionExpiryMillis(0);
+                }
+                break;
+            }
+        }
+        saveMonitoredApps(apps);
+    }
+
+    public void applyTemporaryReduction(String packageName, int reducedSeconds, long durationMillis) {
+        List<MonitoredApp> apps = getMonitoredApps();
+        for (MonitoredApp app : apps) {
+            if (app.getPackageName().equals(packageName)) {
+                app.setTempReductionModeEnabled(true);
+                app.setTempReducedDelaySeconds(reducedSeconds);
+                app.setTempReductionExpiryMillis(System.currentTimeMillis() + durationMillis);
+                break;
+            }
+        }
+        saveMonitoredApps(apps);
+    }
+
     public void removeMonitoredApp(String packageName) {
         List<MonitoredApp> apps = getMonitoredApps();
         apps.removeIf(app -> app.getPackageName().equals(packageName));
